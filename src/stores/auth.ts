@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { CreateUserDTO, ResponseUserDTO, UserProfile } from 'src/data/models';
 
 export const useAuthStore = defineStore('auth', {
@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     getUser(state): ResponseUserDTO | null {
       return state.user || null;
-    },
+    }
   },
 
   actions: {
@@ -23,13 +23,18 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async logIn(accountData: CreateUserDTO): Promise<ResponseUserDTO> {
+    setProfile(newProfileData: UserProfile | null): void {
+      if (!this.user) return;
+
+      if (!newProfileData) this.user.profile = null;
+      else this.user.profile = newProfileData
+    },
+
+    async logIn(accountData: CreateUserDTO): Promise<void> {
       try {
-        const res: AxiosResponse<ResponseUserDTO> = await axios.post('http://localhost:3000/auth/login', { ...accountData }, { withCredentials: true });
+        const res = await axios.post<ResponseUserDTO>('http://localhost:3000/auth/login', { ...accountData }, { withCredentials: true });
 
-        console.log(res.data);
-
-        return res.data;
+        this.setUser(res.data);
       } catch (error) {
         throw error;
       }
@@ -45,87 +50,60 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async createAccount(accountData: CreateUserDTO): Promise<ResponseUserDTO> {
+    async createAccount(accountData: CreateUserDTO): Promise<void> {
       try {
-        const res = await axios.post('http://localhost:3000/users', { ...accountData });
-
-        return res.data;
+        await axios.post<ResponseUserDTO>('http://localhost:3000/users', { ...accountData });
       } catch (error) {
         throw error;
       }
     },
 
-    async updateAccount(id: string, accountData: CreateUserDTO): Promise<ResponseUserDTO> {
+    async updateAccount(id: string, accountData: CreateUserDTO): Promise<void> {
       try {
-        const res = await axios.patch(`http://localhost:3000/users/${id}`, { ...accountData }, { withCredentials: true });
+        const res = await axios.patch<ResponseUserDTO>(`http://localhost:3000/users/${id}`, { ...accountData }, { withCredentials: true });
 
-        return res.data;
+        this.setUser(res.data)
       } catch (error) {
-        console.log(error);
         throw error;
       }
     },
 
-    async deleteAccount(id: string): Promise<AxiosResponse> {
+    async deleteAccount(id: string): Promise<void> {
       try {
-        console.log('DELETE ACCOUNT FIRED!');
-
-        const res = await axios.delete(`http://localhost:3000/users/${id}`, { withCredentials: true });
-
-        console.log(res);
-
-        return res
+        await axios.delete(`http://localhost:3000/users/${id}`, { withCredentials: true });
       } catch (error) {
-        console.log(error);
         throw error;
       }
     },
 
-    async createProfile(accountId: string, profileData: UserProfile): Promise<UserProfile> {
+    async createProfile(accountId: string, profileData: UserProfile): Promise<void> {
       try {
-        console.log('Create Profile Fired!');
+        const res = await axios.post<UserProfile>(`http://localhost:3000/users/${accountId}/profile`, { ...profileData }, { withCredentials: true });
 
-        const res = await axios.post(`http://localhost:3000/users/${accountId}/profile`, { ...profileData }, { withCredentials: true });
-
-        console.log(res);
-
-        return res.data;
+        this.setProfile(res.data);
       } catch (error) {
-        console.log(error);
         throw error;
       }
     },
 
-    async updateProfile(accountId: string, profileData: UserProfile): Promise<unknown> {
+    async updateProfile(accountId: string, profileData: UserProfile): Promise<void> {
       try {
-        console.log('Update Profile Fired!');
+        const res = await axios.patch<UserProfile>(`http://localhost:3000/users/${accountId}/profile`, { ...profileData }, { withCredentials: true });
 
-        const res = await axios.patch(`http://localhost:3000/users/${accountId}/profile`, { ...profileData }, { withCredentials: true });
-
-        console.log(res);
-
-        return res.data;
+        this.setProfile(res.data);
       } catch (error) {
-        console.log(error);
         throw error;
       }
     },
 
-    async deleteProfile(accountId: string) {
+    async deleteProfile(accountId: string): Promise<void> {
       try {
-        console.log('Update Profile Fired!');
+        await axios.delete<void>(`http://localhost:3000/users/${accountId}/profile`, { withCredentials: true });
 
-        const res = await axios.delete(`http://localhost:3000/users/${accountId}/profile`, { withCredentials: true });
-
-        console.log(res);
-
-        return res.data;
+        this.setProfile(null)
       } catch (error) {
-        console.log(error);
         throw error;
       }
     }
-
-
   }
 });

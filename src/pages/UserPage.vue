@@ -96,15 +96,11 @@ export default defineComponent({
 
         const userData = getUser as ResponseUserDTO;
 
-        console.log(userData);
-
         let accountData: UserAccount & { hasProfile: boolean };
         let profileData: UserProfile;
 
-        accountData = { id: userData.id, email: userData.email, password: '', hasProfile: userData.profile !== null }
+        accountData = { id: userData.id, email: userData.email, password: '', hasProfile: getUser?.profile !== null }
         profileData = userData.profile || { address: '', name: '', phone: '' };
-
-        console.log(accountData);
 
         const userAccount = ref(accountData);
         const userProfile = ref(profileData);
@@ -116,12 +112,9 @@ export default defineComponent({
 
         const updateAccountHandler = async (): Promise<void> => {
             try {
-                console.log('UPDATE ACCOUNT FIRED!');
-
                 await updateAccount(userAccount.value.id, { ...userAccount.value });
 
                 isEditingAccount.value = false;
-                hidePwd.value = true;
 
                 $q.notify(
                     {
@@ -148,8 +141,6 @@ export default defineComponent({
         };
 
         const deleteAccountHandler = (): void => {
-            console.log('DELETE ACCOUNT FIRED!');
-
             $q.notify({
                 type: 'warning',
                 message: 'This action will completely delete your account! Are you sure you want to proceed?',
@@ -167,12 +158,10 @@ export default defineComponent({
 
         const addProfileHandler = async (): Promise<void> => {
             try {
-                console.log('ADD PROFILE FIRED!');
+                await createProfile(userAccount.value.id, { ...userProfile.value });
 
-                const newProfile = await createProfile(userAccount.value.id, { ...userProfile.value });
-
+                userProfile.value = getUser?.profile as UserProfile;
                 userAccount.value.hasProfile = true;
-                userProfile.value = newProfile;
                 isEditingProfile.value = false;
 
                 $q.notify(
@@ -202,8 +191,6 @@ export default defineComponent({
 
         const updateProfileHandler = async (): Promise<void> => {
             try {
-                console.log('UPDATE PROFILE FIRED!');
-
                 await updateProfile(userAccount.value.id, { ...userProfile.value });
 
                 isEditingProfile.value = !isEditingProfile.value;
@@ -234,8 +221,6 @@ export default defineComponent({
         }
 
         const deleteProfileHandler = async (): Promise<void> => {
-            console.log('DELETE PROFILE FIRED!');
-
             $q.notify({
                 type: 'warning',
                 message: 'This action will completely delete your user profile! Are you sure you want to proceed?',
@@ -251,14 +236,11 @@ export default defineComponent({
 
         const confirmAccountDelete = async (): Promise<void> => {
             try {
-                const id = userAccount.value.id;
+                await deleteAccount(userAccount.value.id)
 
-                logOut();
-
-                await deleteAccount(id)
+                await logOut();
 
                 router.push('/');
-
             } catch (error) {
                 let errMsg = 'We encountered unexpected error! Please try again later.';
 
@@ -281,9 +263,7 @@ export default defineComponent({
             try {
                 await deleteProfile(userAccount.value.id);
 
-                userAccount.value.hasProfile = false;
-                userProfile.value = { address: '', name: '', phone: '' };
-                isEditingProfile.value = false;
+                profileResetHandler();
 
                 $q.notify(
                     {
@@ -308,6 +288,12 @@ export default defineComponent({
                     }
                 );
             }
+        }
+
+        const profileResetHandler = (): void => {
+            userProfile.value = { name: '', address: '', phone: '' };
+            userAccount.value.hasProfile = false;
+            isEditingProfile.value = false;
         }
 
         return {

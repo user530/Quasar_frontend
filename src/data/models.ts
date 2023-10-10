@@ -46,7 +46,7 @@ export interface UserAccount {
   id: string,
   email: string,
   password: string,
-  profile?: UserProfile
+  profile?: UserProfile | null
 }
 
 export type CreateUserDTO = Pick<UserAccount, 'email' | 'password'>;

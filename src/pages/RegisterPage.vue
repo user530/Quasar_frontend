@@ -6,13 +6,14 @@
 
                 <h2 class="text-center q-mb-xl">Register new account:</h2>
 
-                <q-input v-model="userAccount.email" class="q-mb-lg" outlined label="Your email *" lazy-rules :rules="[
-                    val => val !== null && val !== '' || 'Please, enter the email!',
-                    val => emailRegex.test(val) || 'Please, enter valid email!'
-                ]" />
+                <q-input v-model="userAccount.email" class="q-mb-lg" outlined label="Your email *" clearable lazy-rules
+                    :rules="[
+                        val => val !== null && val !== '' || 'Please, enter the email!',
+                        val => emailRegex.test(val) || 'Please, enter valid email!'
+                    ]" />
 
                 <q-input v-model="userAccount.password" class="q-mb-lg" outlined label="Your password *"
-                    :type="hidePwd ? 'password' : 'text'" lazy-rules :rules="[
+                    :type="hidePwd ? 'password' : 'text'" clearable lazy-rules :rules="[
                         val => val !== null && val !== '' || 'Please, enter the password!',
                         val => passRegex.test(val) || 'Password should include at least one uppercase character, one lowercase character, one number and one symbol and be at least 6 characters long!'
                     ]">
@@ -63,8 +64,6 @@ export default defineComponent({
         const hidePwd = ref(true);
 
         const createAccountHandler = async (): Promise<void> => {
-            console.log('SUBMIT REGISTER FIRED!');
-
             if (!accept.value)
                 $q.notify(
                     {
@@ -76,6 +75,8 @@ export default defineComponent({
             else {
                 try {
                     await createAccount({ ...userAccount.value });
+
+                    resetHandler();
 
                     $q.notify(
                         {
@@ -105,7 +106,6 @@ export default defineComponent({
         };
 
         const resetHandler = (): void => {
-            console.log('RESET FIRED!');
             userAccount.value = { email: '', password: '' };
             accept.value = false;
         }

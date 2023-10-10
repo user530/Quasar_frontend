@@ -45,21 +45,16 @@ export default defineComponent({
     setup() {
         const $q = useQuasar();
         const router = useRouter();
-        const { logIn, setUser } = useAuthStore();
+        const { logIn } = useAuthStore();
 
         const loginData: Ref<CreateUserDTO> = ref({ email: '', password: '' });
         const hidePwd: Ref<boolean> = ref(true);
 
         const logInHandler = async (): Promise<void> => {
             try {
-                console.log('SUBMIT FIRED!');
-
-                const { id, email, profile } = await logIn({ ...loginData.value });
-
-                setUser({ id, email, profile });
+                await logIn({ ...loginData.value });
 
                 router.push('user');
-
             } catch (error) {
                 let errMsg = 'We encountered unexpected error! Please try again later.';
 
@@ -80,7 +75,6 @@ export default defineComponent({
         };
 
         const resetHandler = (): void => {
-            console.log('RESET FIRED!');
             loginData.value = { email: '', password: '' };
         }
 
