@@ -45,7 +45,9 @@ export default defineComponent({
     setup() {
         const $q = useQuasar();
         const router = useRouter();
-        const { logIn } = useAuthStore();
+        const { logIn, getUser } = useAuthStore();
+
+        if (getUser) router.push('user');
 
         const loginData: Ref<CreateUserDTO> = ref({ email: '', password: '' });
         const hidePwd: Ref<boolean> = ref(true);

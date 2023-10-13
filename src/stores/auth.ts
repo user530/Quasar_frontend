@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import { CreateUserDTO, ResponseUserDTO, UserProfile } from 'src/data/models';
+import axiosInstance from 'src/axios';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -32,7 +32,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logIn(accountData: CreateUserDTO): Promise<void> {
       try {
-        const res = await axios.post<ResponseUserDTO>('http://localhost:3000/auth/login', { ...accountData }, { withCredentials: true });
+        const res = await axiosInstance.post<ResponseUserDTO>('/auth/login', { ...accountData });
 
         this.setUser(res.data);
       } catch (error) {
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logOut(): Promise<void> {
       try {
-        await axios.post('http://localhost:3000/auth/logout', null, { withCredentials: true });
+        await axiosInstance.delete<void>('/auth/logout');
 
         this.setUser(null);
       } catch (error) {
@@ -52,7 +52,7 @@ export const useAuthStore = defineStore('auth', {
 
     async createAccount(accountData: CreateUserDTO): Promise<void> {
       try {
-        await axios.post<ResponseUserDTO>('http://localhost:3000/users', { ...accountData });
+        await axiosInstance.post<ResponseUserDTO>('/users', { ...accountData });
       } catch (error) {
         throw error;
       }
@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', {
 
     async updateAccount(id: string, accountData: CreateUserDTO): Promise<void> {
       try {
-        const res = await axios.patch<ResponseUserDTO>(`http://localhost:3000/users/${id}`, { ...accountData }, { withCredentials: true });
+        const res = await axiosInstance.patch<ResponseUserDTO>(`/users/${id}`, { ...accountData });
 
         this.setUser(res.data)
       } catch (error) {
@@ -70,7 +70,7 @@ export const useAuthStore = defineStore('auth', {
 
     async deleteAccount(id: string): Promise<void> {
       try {
-        await axios.delete(`http://localhost:3000/users/${id}`, { withCredentials: true });
+        await axiosInstance.delete<void>(`/users/${id}`);
       } catch (error) {
         throw error;
       }
@@ -78,7 +78,7 @@ export const useAuthStore = defineStore('auth', {
 
     async createProfile(accountId: string, profileData: UserProfile): Promise<void> {
       try {
-        const res = await axios.post<UserProfile>(`http://localhost:3000/users/${accountId}/profile`, { ...profileData }, { withCredentials: true });
+        const res = await axiosInstance.post<UserProfile>(`/users/${accountId}/profile`, { ...profileData });
 
         this.setProfile(res.data);
       } catch (error) {
@@ -88,7 +88,7 @@ export const useAuthStore = defineStore('auth', {
 
     async updateProfile(accountId: string, profileData: UserProfile): Promise<void> {
       try {
-        const res = await axios.patch<UserProfile>(`http://localhost:3000/users/${accountId}/profile`, { ...profileData }, { withCredentials: true });
+        const res = await axiosInstance.patch<UserProfile>(`/users/${accountId}/profile`, { ...profileData });
 
         this.setProfile(res.data);
       } catch (error) {
@@ -98,9 +98,19 @@ export const useAuthStore = defineStore('auth', {
 
     async deleteProfile(accountId: string): Promise<void> {
       try {
-        await axios.delete<void>(`http://localhost:3000/users/${accountId}/profile`, { withCredentials: true });
+        await axiosInstance.delete<void>(`/users/${accountId}/profile`);
 
         this.setProfile(null)
+      } catch (error) {
+        throw error;
+      }
+    },
+
+    async getMe(): Promise<void> {
+      try {
+        const user = await axiosInstance.get<ResponseUserDTO>('/auth/getme');
+
+        this.setUser(user.data);
       } catch (error) {
         throw error;
       }

@@ -269,7 +269,7 @@ export default defineComponent({
                     {
                         color: 'green-4',
                         textColor: 'white',
-                        message: 'PROFILE DELETED!'
+                        message: 'Your profile is successfully deleted!'
                     }
                 );
 

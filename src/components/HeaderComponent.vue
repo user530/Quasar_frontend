@@ -14,7 +14,19 @@
                     <q-toolbar-title>Quasar Framework</q-toolbar-title>
 
                     <q-btn v-if="!user" flat dense icon="login" to="login" />
-                    <q-btn v-if="user" flat dense icon="account_circle" to="user" />
+                    <q-btn v-if="user" flat dense icon="account_circle">
+                        <q-menu>
+                            <q-list class="bg-grey-7 text-grey-1" style="min-width: 100px;">
+                                <q-item clickable v-close-popup active-class="bg-grey-6 text-grey-1" to="user">
+                                    <q-item-section>User page</q-item-section>
+                                </q-item>
+
+                                <q-item clickable v-close-popup>
+                                    <q-item-section @click="logOutHandler">Log out</q-item-section>
+                                </q-item>
+                            </q-list>
+                        </q-menu>
+                    </q-btn>
 
                 </q-toolbar>
 
@@ -37,6 +49,7 @@ import { PropType, defineComponent, ref } from 'vue';
 import { NavLink } from '../data/models';
 import { useAuthStore } from '../stores/auth'
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
     name: 'HeaderComponent',
@@ -48,12 +61,23 @@ export default defineComponent({
     },
     setup({ links }) {
         const authStore = useAuthStore();
-
+        const { getMe, logOut } = authStore;
         const { user } = storeToRefs(authStore);
+        const router = useRouter();
+
+        getMe();
+
+        const logOutHandler = async (): Promise<void> => {
+            logOut();
+
+            if (router.currentRoute.value.path === '/user')
+                router.push('/')
+        }
 
         return {
             currentTab: ref(links[0].name),
             user,
+            logOutHandler
         }
     }
 });
