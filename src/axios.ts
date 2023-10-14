@@ -16,22 +16,20 @@ axiosInstance.interceptors.response.use(
     async (error: AxiosError) => {
         // Handle regular errors and failed refresh attempts
         if (error.response?.status !== 401 || triedRefresh)
-            return error;
+            throw error;
 
         // Refresh attempt starts
         // Set refresh flag
         triedRefresh = true;
 
-        try {
-            // Try to refresh access token
-            await axiosInstance.get('auth/refresh');
+        // Try to refresh access token
+        await axiosInstance.get('auth/refresh')
+            .catch(() => { return });
 
-            // Try to make initial request and reset the refresh flag
-            return axiosInstance(error.config as AxiosRequestConfig)
-                .finally(() => triedRefresh = false);
-        } catch (error) {
-            throw error
-        }
+        // Try to make initial request and reset the refresh flag
+        return axiosInstance(error.config as AxiosRequestConfig)
+            .catch((err) => { throw err })
+            .finally(() => triedRefresh = false);
     }
 );
 

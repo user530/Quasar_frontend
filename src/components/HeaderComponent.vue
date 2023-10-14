@@ -65,7 +65,8 @@ export default defineComponent({
         const { user } = storeToRefs(authStore);
         const router = useRouter();
 
-        getMe();
+        // Restore session attempt
+        getMe().catch(() => { return });
 
         const logOutHandler = async (): Promise<void> => {
             logOut();
