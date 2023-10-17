@@ -1,36 +1,65 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosRequestConfig, CreateAxiosDefaults } from 'axios';
 
-// Refresh flag
-let triedRefresh = false;
+export class MyAxiosInstance {
+    private controller = new AbortController();
+    private defaultAxiosConfig: CreateAxiosDefaults = {
+        baseURL: process.env.API,
+        timeout: 5000,
+        withCredentials: true,
+        signal: this.controller.signal
+    };
+    private myAxios = axios.create(this.defaultAxiosConfig);
 
-// Axios Instance with default settings
-const axiosInstance = axios.create({
-    baseURL: 'http://localhost:3000',
-    timeout: 5000,
-    withCredentials: true
-});
+    constructor() {
+        // Add response interceptor to handle refresh token attempt
+        this.myAxios.interceptors.response.use(
+            (response) => response,
+            async (error: AxiosError) => {
+                // Pass non auth errors through
+                if (error.response?.status !== 401) throw error;
 
-// Interceptor setup
-axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error: AxiosError) => {
-        // Handle regular errors and failed refresh attempts
-        if (error.response?.status !== 401 || triedRefresh)
-            throw error;
+                // Try to refresh the token
+                await axios.get('auth/refresh', { baseURL: process.env.API, withCredentials: true });
 
-        // Refresh attempt starts
-        // Set refresh flag
-        triedRefresh = true;
-
-        // Try to refresh access token
-        await axiosInstance.get('auth/refresh')
-            .catch(() => { return });
-
-        // Try to make initial request and reset the refresh flag
-        return axiosInstance(error.config as AxiosRequestConfig)
-            .catch((err) => { throw err })
-            .finally(() => triedRefresh = false);
+                // Make a second attempt
+                return axios(error.config as AxiosRequestConfig)
+            }
+        )
     }
-);
 
-export default axiosInstance;
+    public makeGetRequest = async <T>(url: string, config?: AxiosRequestConfig | undefined) => {
+        this.controller.abort();
+
+        const newController = new AbortController();
+        this.controller = newController;
+
+        return this.myAxios.get<T>(url, { ...config, signal: newController.signal });
+    }
+
+    public makePostRequest = async <T>(url: string, data?: unknown, config?: AxiosRequestConfig | undefined) => {
+        this.controller.abort();
+
+        const newController = new AbortController();
+        this.controller = newController;
+
+        return this.myAxios.post<T>(url, data, { ...config, signal: newController.signal });
+    }
+
+    public makePatchRequest = async <T>(url: string, data?: unknown, config?: AxiosRequestConfig | undefined) => {
+        this.controller.abort();
+
+        const newController = new AbortController();
+        this.controller = newController;
+
+        return this.myAxios.patch<T>(url, data, { ...config, signal: newController.signal });
+    }
+
+    public makeDeleteRequest = async <T>(url: string, config?: AxiosRequestConfig | undefined) => {
+        this.controller.abort();
+
+        const newController = new AbortController();
+        this.controller = newController;
+
+        return this.myAxios.delete<T>(url, { ...config, signal: newController.signal });
+    }
+}

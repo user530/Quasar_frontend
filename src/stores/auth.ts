@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 import { CreateUserDTO, ResponseUserDTO, UserProfile } from 'src/data/models';
-import axiosInstance from 'src/axios';
+import { MyAxiosInstance } from 'src/axios';
+
+const myAxiosInstance = new MyAxiosInstance();
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -32,7 +34,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logIn(accountData: CreateUserDTO): Promise<void> {
       try {
-        const res = await axiosInstance.post<ResponseUserDTO>('/auth/login', { ...accountData });
+        const res = await myAxiosInstance.makePostRequest<ResponseUserDTO>('/auth/login', { ...accountData });
 
         this.setUser(res.data);
       } catch (error) {
@@ -42,7 +44,7 @@ export const useAuthStore = defineStore('auth', {
 
     async logOut(): Promise<void> {
       try {
-        await axiosInstance.delete<void>('/auth/logout');
+        await myAxiosInstance.makeDeleteRequest<void>('/auth/logout');
 
         this.setUser(null);
       } catch (error) {
@@ -52,7 +54,7 @@ export const useAuthStore = defineStore('auth', {
 
     async createAccount(accountData: CreateUserDTO): Promise<void> {
       try {
-        await axiosInstance.post<ResponseUserDTO>('/users', { ...accountData });
+        await myAxiosInstance.makePostRequest<ResponseUserDTO>('/users', { ...accountData });
       } catch (error) {
         throw error;
       }
@@ -60,7 +62,7 @@ export const useAuthStore = defineStore('auth', {
 
     async updateAccount(id: string, accountData: CreateUserDTO): Promise<void> {
       try {
-        const res = await axiosInstance.patch<ResponseUserDTO>(`/users/${id}`, { ...accountData });
+        const res = await myAxiosInstance.makePatchRequest<ResponseUserDTO>(`/users/${id}`, { ...accountData });
 
         this.setUser(res.data)
       } catch (error) {
@@ -70,7 +72,7 @@ export const useAuthStore = defineStore('auth', {
 
     async deleteAccount(id: string): Promise<void> {
       try {
-        await axiosInstance.delete<void>(`/users/${id}`);
+        await myAxiosInstance.makeDeleteRequest<void>(`/users/${id}`);
       } catch (error) {
         throw error;
       }
@@ -78,7 +80,7 @@ export const useAuthStore = defineStore('auth', {
 
     async createProfile(accountId: string, profileData: UserProfile): Promise<void> {
       try {
-        const res = await axiosInstance.post<UserProfile>(`/users/${accountId}/profile`, { ...profileData });
+        const res = await myAxiosInstance.makePostRequest<UserProfile>(`/users/${accountId}/profile`, { ...profileData });
 
         this.setProfile(res.data);
       } catch (error) {
@@ -88,7 +90,7 @@ export const useAuthStore = defineStore('auth', {
 
     async updateProfile(accountId: string, profileData: UserProfile): Promise<void> {
       try {
-        const res = await axiosInstance.patch<UserProfile>(`/users/${accountId}/profile`, { ...profileData });
+        const res = await myAxiosInstance.makePatchRequest<UserProfile>(`/users/${accountId}/profile`, { ...profileData });
 
         this.setProfile(res.data);
       } catch (error) {
@@ -98,7 +100,7 @@ export const useAuthStore = defineStore('auth', {
 
     async deleteProfile(accountId: string): Promise<void> {
       try {
-        await axiosInstance.delete<void>(`/users/${accountId}/profile`);
+        await myAxiosInstance.makeDeleteRequest<void>(`/users/${accountId}/profile`);
 
         this.setProfile(null)
       } catch (error) {
@@ -108,7 +110,7 @@ export const useAuthStore = defineStore('auth', {
 
     async getMe(): Promise<void> {
       try {
-        const user = await axiosInstance.get<ResponseUserDTO>('/auth/getme');
+        const user = await myAxiosInstance.makeGetRequest<ResponseUserDTO>('/auth/getme');
 
         this.setUser(user.data);
       } catch (error) {
