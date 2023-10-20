@@ -8,14 +8,14 @@
 
                 <q-input v-model="accountFormData.accountData!.email" class="q-mb-lg" outlined label="User Email"
                     :readonly="!accountFormData.editingAccount"
-                    :bg-color="!accountFormData.editingAccount ? 'grey-4' : 'none'" lazy-rules :rules="[
+                    :bg-color="!accountFormData.editingAccount ? 'grey-4' : 'none'" lazy-rules="ondemand" :rules="[
                         val => val !== null && val !== '' || 'Please, enter the email!',
                         val => emailRegex.test(val) || 'Please, enter valid email!'
                     ]" />
 
                 <q-input v-model="accountFormData.accountData!.password" class="q-mb-lg" outlined label="User Password"
                     :readonly="!accountFormData.editingAccount" :type="accountFormData.hidePwd ? 'password' : 'text'"
-                    :bg-color="!accountFormData.editingAccount ? 'grey-4' : 'none'" lazy-rules :rules="[
+                    :bg-color="!accountFormData.editingAccount ? 'grey-4' : 'none'" lazy-rules="ondemand" :rules="[
                         val => val !== null && val !== '' || 'Please, enter the password!',
                         val => passRegex.test(val) || 'Password should include at least one uppercase character, one lowercase character, one number and one symbol and be at least 6 characters long!'
                     ]">
@@ -39,26 +39,31 @@
             </q-form>
 
             <q-form class="q-mx-auto q-pa-lg shadow-2" style="max-width: 600px; border: 1px solid #232323;"
-                @submit="updateProfileHandler">
+                @submit="profileFormCallback" @reset="profileResetHandler">
 
                 <h2 class="text-center q-mb-xl">User Profile:</h2>
 
                 <q-input v-model="profileFormData.profileData.name" class="q-mb-lg" outlined label="Name"
                     :readonly="!profileFormData.editingProfile"
-                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" lazy-rules :rules="[
-                        val => val !== null && val !== '' || 'Please, enter the name!'
-                    ]" />
+                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" clearable lazy-rules="ondemand"
+                    :rules="[val => val !== null && val !== '' || 'Please, enter the name!']" />
 
                 <q-input v-model="profileFormData.profileData.phone" class="q-mb-lg" outlined label="Phone"
                     :readonly="!profileFormData.editingProfile"
-                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" lazy-rules :rules="[
+                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" clearable lazy-rules="ondemand" :rules="[
                         val => val !== null && val !== '' || 'Please, enter the phone!'
                     ]" />
 
                 <q-input v-model="profileFormData.profileData.address" class="q-mb-lg" outlined label="Address"
                     :readonly="!profileFormData.editingProfile"
-                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" lazy-rules :rules="[
+                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" clearable lazy-rules="ondemand" :rules="[
                         val => val !== null && val !== '' || 'Please, enter the address!'
+                    ]" />
+
+                <q-input v-model="profileFormData.profileData.about" class="q-mb-lg" filled type="textarea"
+                    label="Additional user information" :readonly="!profileFormData.editingProfile"
+                    :bg-color="!profileFormData.editingProfile ? 'grey-4' : 'none'" clearable lazy-rules="ondemand" :rules="[
+                        val => val !== null && val !== '' || 'Please, enter the information about you!'
                     ]" />
 
                 <div class="q-mb-lg">
@@ -67,10 +72,13 @@
                 </div>
 
                 <div class="flex justify-between">
-                    <q-btn v-if="!getUser.profile" @click="addProfileHandler" color="positive"
-                        :disable="!profileFormData.editingProfile" label="Add profile data" />
-                    <q-btn v-else @click="updateProfileHandler" color="positive" :disable="!profileFormData.editingProfile"
+                    <q-btn v-if="!getUser.profile" type="submit" color="positive" :disable="!profileFormData.editingProfile"
+                        label="Add profile data" />
+
+                    <q-btn v-else type="submit" color="positive" :disable="!profileFormData.editingProfile"
                         label="Update profile data" />
+
+                    <q-btn type="reset" color="negative" :disable="!profileFormData.editingProfile" flat label="Reset" />
 
                     <q-btn v-if="getUser.profile" @click="deleteProfileHandler" :disable="!getUser.profile" color="negative"
                         label="Delete profile" />
@@ -83,7 +91,7 @@
 <script lang="ts">
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
-import { defineComponent, ref, watch } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { AccountFormData, ProfileFormData } from '../data/models'
 import { useAuthStore } from '../stores/auth'
 import { emailRegex, passRegex } from '../data/models';
@@ -115,41 +123,14 @@ export default defineComponent({
             profileData: {
                 name: getUser.value?.profile?.name || '',
                 address: getUser.value?.profile?.address || '',
-                phone: getUser.value?.profile?.phone || ''
+                phone: getUser.value?.profile?.phone || '',
+                about: getUser.value?.profile?.about || '',
             },
             editingProfile: false
         }
 
         const accountFormData = ref(defaultAccountData);
         const profileFormData = ref(defaultProfileData);
-
-        watch(() => getUser.value, (newValue) => {
-            if (!newValue) {
-                accountFormData.value = defaultAccountData;
-                profileFormData.value = defaultProfileData;
-                return;
-            }
-
-
-            accountFormData.value = {
-                ...accountFormData.value, accountData: {
-                    id: newValue.id,
-                    email: newValue.email,
-                    password: ''
-                }
-            }
-
-            profileFormData.value = {
-                profileData: {
-                    name: newValue.profile?.name || '',
-                    address: newValue.profile?.address || '',
-                    phone: newValue.profile?.phone || '',
-                },
-                editingProfile: profileFormData.value.editingProfile
-            }
-
-
-        })
 
         const createResponseHandler = (options: {
             cb: () => Promise<void>,
@@ -161,7 +142,7 @@ export default defineComponent({
             if (!defaultErrMsg) defaultErrMsg = 'We encountered unexpected error! Please try again later.'
 
             try {
-                cb();
+                await cb();
 
                 $q.notify({
                     color: 'green-4',
@@ -170,18 +151,24 @@ export default defineComponent({
                 })
 
             } catch (error) {
-
                 let errMsg = defaultErrMsg;
 
-                if (axios.isAxiosError(error) && error.response?.data.message)
-                    errMsg = error.response?.data.message;
+                if (axios.isAxiosError(error) && error.response?.data.message) {
+                    const { message } = error.response?.data;
+
+                    if (message instanceof Array)
+                        errMsg = message.join(', \n');
+                    else
+                        errMsg = message;
+                }
 
                 $q.notify(
                     {
                         color: 'red-7',
                         textColor: 'white',
                         icon: 'warning',
-                        message: errMsg
+                        message: errMsg,
+                        multiLine: true
                     }
                 );
             }
@@ -220,7 +207,7 @@ export default defineComponent({
             cb: async () => {
                 const { accountData: { id } } = accountFormData.value;
                 const { profileData } = profileFormData.value;
-
+                
                 await createProfile(id, { ...profileData });
 
                 profileFormData.value.editingProfile = false;
@@ -232,7 +219,7 @@ export default defineComponent({
             cb: async () => {
                 const { accountData: { id } } = accountFormData.value;
                 const { profileData } = profileFormData.value;
-
+                
                 await updateProfile(id, { ...profileData });
 
                 profileFormData.value.editingProfile = false;
@@ -240,7 +227,7 @@ export default defineComponent({
             successMsg: 'Your profile is successfully updated!',
         })
 
-        const deleteProfileHandler = async (): Promise<void> => {
+        const deleteProfileHandler = (): void => {
             $q.notify({
                 type: 'warning',
                 message: 'This action will completely delete your user profile! Are you sure you want to proceed?',
@@ -284,10 +271,15 @@ export default defineComponent({
                 profileData: {
                     name: '',
                     address: '',
-                    phone: ''
+                    phone: '',
+                    about: '',
                 },
                 editingProfile: true
             };
+        }
+
+        const profileFormCallback = () => {
+            return !(getUser.value?.profile) ? addProfileHandler() : updateProfileHandler();
         }
 
         return {
@@ -300,7 +292,9 @@ export default defineComponent({
             deleteAccountHandler,
             addProfileHandler,
             updateProfileHandler,
-            deleteProfileHandler
+            deleteProfileHandler,
+            profileFormCallback,
+            profileResetHandler
         }
     }
 })

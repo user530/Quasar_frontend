@@ -19,7 +19,7 @@ export class MyAxiosInstance {
                 if (error.response?.status !== 401) throw error;
 
                 // Try to refresh the token
-                await axios.get('auth/refresh', { baseURL: process.env.API, withCredentials: true });
+                await axios.get('auth/refresh', { baseURL: process.env.API, withCredentials: true }).catch(() => { return });
 
                 // Make a second attempt
                 return axios(error.config as AxiosRequestConfig)

@@ -6,14 +6,14 @@
 
                 <h2 class="text-center q-mb-xl">Register new account:</h2>
 
-                <q-input v-model="userAccount.email" class="q-mb-lg" outlined label="Your email *" clearable lazy-rules
+                <q-input v-model="userAccount.email" class="q-mb-lg" outlined label="Your email *" lazy-rules="ondemand"
                     :rules="[
                         val => val !== null && val !== '' || 'Please, enter the email!',
                         val => emailRegex.test(val) || 'Please, enter valid email!'
                     ]" />
 
                 <q-input v-model="userAccount.password" class="q-mb-lg" outlined label="Your password *"
-                    :type="hidePwd ? 'password' : 'text'" clearable lazy-rules :rules="[
+                    :type="hidePwd ? 'password' : 'text'" lazy-rules="ondemand" :rules="[
                         val => val !== null && val !== '' || 'Please, enter the password!',
                         val => passRegex.test(val) || 'Password should include at least one uppercase character, one lowercase character, one number and one symbol and be at least 6 characters long!'
                     ]">
@@ -58,7 +58,7 @@ export default defineComponent({
     setup() {
         const $q = useQuasar();
         const authStore = useAuthStore();
-        const {  createAccount } = authStore;
+        const { createAccount } = authStore;
 
         const userAccount: Ref<CreateUserDTO> = ref({ email: '', password: '' });
         const accept: Ref<boolean> = ref(false);

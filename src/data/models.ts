@@ -53,6 +53,7 @@ export interface UserProfile {
   name: string,
   phone: string,
   address: string,
+  about: string,
 }
 
 export type CreateUserDTO = Pick<UserAccount, 'email' | 'password'>;
