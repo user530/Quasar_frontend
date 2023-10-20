@@ -46,14 +46,25 @@ export interface UserAccount {
   id: string,
   email: string,
   password: string,
-  profile?: UserProfile | null
+  profile: UserProfile | null
+}
+
+export interface UserProfile {
+  name: string,
+  phone: string,
+  address: string,
 }
 
 export type CreateUserDTO = Pick<UserAccount, 'email' | 'password'>;
 export type ResponseUserDTO = Pick<UserAccount, 'id' | 'email' | 'profile'>;
 
-export interface UserProfile {
-  name?: string,
-  phone?: string,
-  address?: string,
+export type AccountFormData = {
+  accountData: Omit<UserAccount, 'profile'>,
+  editingAccount: boolean,
+  hidePwd: boolean,
+}
+
+export type ProfileFormData = {
+  profileData: UserProfile,
+  editingProfile: boolean,
 }

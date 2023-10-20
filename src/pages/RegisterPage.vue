@@ -57,7 +57,8 @@ export default defineComponent({
     name: 'RegisterPage',
     setup() {
         const $q = useQuasar();
-        const { createAccount } = useAuthStore();
+        const authStore = useAuthStore();
+        const {  createAccount } = authStore;
 
         const userAccount: Ref<CreateUserDTO> = ref({ email: '', password: '' });
         const accept: Ref<boolean> = ref(false);

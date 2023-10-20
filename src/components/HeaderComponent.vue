@@ -13,8 +13,8 @@
 
                     <q-toolbar-title>Quasar Framework</q-toolbar-title>
 
-                    <q-btn v-if="!user" flat dense icon="login" to="login" />
-                    <q-btn v-if="user" flat dense icon="account_circle">
+                    <q-btn v-if="!getUser" flat dense icon="login" to="login" />
+                    <q-btn v-if="getUser" flat dense icon="account_circle">
                         <q-menu>
                             <q-list class="bg-grey-7 text-grey-1" style="min-width: 100px;">
                                 <q-item clickable v-close-popup active-class="bg-grey-6 text-grey-1" to="user">
@@ -62,11 +62,13 @@ export default defineComponent({
     setup({ links }) {
         const authStore = useAuthStore();
         const { getMe, logOut } = authStore;
-        const { user } = storeToRefs(authStore);
+        const { getUser } = storeToRefs(authStore);
         const router = useRouter();
 
-        // Restore session attempt
-        getMe().catch(() => { return });
+        // Restore session attempt (if needed)
+        if (!getUser.value)
+            getMe()
+                .catch(() => { return });
 
         const logOutHandler = async (): Promise<void> => {
             logOut();
@@ -77,7 +79,7 @@ export default defineComponent({
 
         return {
             currentTab: ref(links[0].name),
-            user,
+            getUser,
             logOutHandler
         }
     }

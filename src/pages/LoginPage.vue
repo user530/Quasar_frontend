@@ -38,6 +38,7 @@ import { useQuasar } from 'quasar';
 import { CreateUserDTO, emailRegex, passRegex } from 'src/data/models';
 import { useAuthStore } from '../stores/auth';
 import axios from 'axios';
+import { storeToRefs } from 'pinia';
 
 
 export default defineComponent({
@@ -45,9 +46,11 @@ export default defineComponent({
     setup() {
         const $q = useQuasar();
         const router = useRouter();
-        const { logIn, getUser } = useAuthStore();
+        const authStore = useAuthStore();
+        const { logIn } = authStore;
+        const { getUser } = storeToRefs(authStore);
 
-        if (getUser) router.push('user');
+        if (getUser.value) router.push('user');
 
         const loginData: Ref<CreateUserDTO> = ref({ email: '', password: '' });
         const hidePwd: Ref<boolean> = ref(true);

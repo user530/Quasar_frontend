@@ -12,7 +12,10 @@ const routes: RouteRecordRaw[] = [
       { path: 'aboutus', component: AboutUsPage },
       { path: 'register', component: RegisterPage },
       { path: 'login', component: LoginPage },
-      { path: 'user', component: UserPage, beforeEnter: authGuard }
+      {
+        path: 'user', component: UserPage,
+        beforeEnter: authGuard
+      }
     ]
   },
 
