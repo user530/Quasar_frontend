@@ -70,9 +70,7 @@ module.exports = configure(function (ctx) {
       // publicPath: '/',
       // analyze: true,
       env: {
-        API: ctx.dev 
-        ? 'http://localhost:3000'
-        : 'http://mybackendapi:3000'
+        API: 'http://localhost:3000'
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
