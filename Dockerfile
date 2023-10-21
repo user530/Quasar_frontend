@@ -9,6 +9,10 @@ RUN npm install
 
 COPY . .
 
+ARG API_URL_ARG
+
+ENV API_URL $API_URL_ARG
+
 RUN npm run build
 
 # Production stage
