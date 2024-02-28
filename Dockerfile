@@ -1,11 +1,11 @@
 # Build stage
-FROM node:20.3-alpine as build-stage
+FROM node:current-alpine3.19 as build-stage
 
 WORKDIR /app
 
-COPY ./package.json ./
+COPY package*.json .
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
@@ -15,8 +15,10 @@ ENV API_URL $API_URL_ARG
 
 RUN npm run build
 
+RUN npm ci --production && npm cache clean --force
+
 # Production stage
-FROM nginx:1.17.5-alpine
+FROM nginx:1.25.4-alpine
 
 COPY --from=build-stage /app/dist/spa /usr/share/nginx/html
 
